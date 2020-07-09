@@ -1,0 +1,29 @@
+{
+  "name": "setcooki/klaro-embed",
+  "description": "Embed adapter for klaro consent manager",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Frank Mueller",
+      "email": "set@cooki.me",
+      "homepage": "http://set.cooki.me",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/setcooki/klaro-embed/issues"
+  },
+  "type": "library",
+  "config": {
+    "vendor-dir": "lib/vendor"
+  },
+  "require": {
+    "php": ">=7.1.2",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Setcooki\\Klaro\\Embed": "src"
+    }
+  }
+}
