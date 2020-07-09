@@ -24,6 +24,7 @@
   "autoload": {
     "psr-4": {
       "Setcooki\\Klaro\\Embed\\": "src"
-    }
+    },
+    "files": ["boot.php"]
   }
 }
