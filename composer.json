@@ -22,9 +22,9 @@
     "ext-json": "*"
   },
   "autoload": {
+    "files": ["lib/bootstrap.php"],
     "psr-4": {
-      "Setcooki\\Klaro\\Embed\\": "src"
-    },
-    "files": ["boot.php"]
+      "Setcooki\\Klaro\\Embed\\": "src/"
+    }
   }
 }
