@@ -19,7 +19,7 @@
   },
   "require": {
     "php": ">=7.1.2",
-    "ext-json": "*"
+    "ext-json": "*",
   },
   "autoload": {
     "files": ["lib/bootstrap.php"],
