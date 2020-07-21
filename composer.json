@@ -20,7 +20,7 @@
   "require": {
     "php": ">=7.1.2",
     "ext-json": "*",
-    "matthiasmullie/minify": "^1.3"
+    "matthiasmullie/minify": "dev-master"
   },
   "autoload": {
     "files": ["lib/bootstrap.php"],
