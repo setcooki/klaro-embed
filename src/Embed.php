@@ -18,6 +18,16 @@ class Embed
     protected $tag = null;
 
     /**
+     * @var null
+     */
+    protected $config = null;
+
+    /**
+     * @var null
+     */
+    protected $klaro = null;
+
+    /**
      * @var array
      */
     protected $attrs = [];
@@ -37,11 +47,14 @@ class Embed
      * Embed constructor.
      * @param $tag
      * @param array $attrs
+     * @param null $config
      */
-    public function __construct($tag, array $attrs = [])
+    public function __construct($tag, array $attrs = [], $config = null)
     {
+        $this->klaro = ske_klaro();
         $this->tag = $tag;
         $this->attrs = $attrs;
+        $this->config = $config;
         $this->src = (array_key_exists('src', $attrs)) ? $attrs['src'] : null;
         $this->provider = $this->provider($attrs);
     }
@@ -63,7 +76,7 @@ class Embed
             display: block;
             overflow: hidden;
             max-width: 100%;
-            min-width: 320px;
+            min-width: 240px;
             height: auto;
             padding-bottom: inherit;
             background: transparent url("data:image/svg+xml;base64,<?php echo base64_encode($svg); ?>") center center/cover no-repeat;
@@ -79,12 +92,24 @@ class Embed
             background: hsla(0, 0%, 0%, 0.8);
             color: #fff;
             font-size: 13px;
-            padding: 10px 5px;
+            padding: 10px;
         }
 
         .ske-embed-notice a {
             color: #fff !important;
             text-decoration: underline;
+        }
+
+        .ske-embed-caption {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            -ms-word-break: break-all;
+            word-break: break-all;
+            word-break: break-word;
+            -ms-hyphens: auto;
+            -moz-hyphens: auto;
+            -webkit-hyphens: auto;
+            hyphens: auto;
         }
 
         .ske-button {
@@ -140,6 +165,7 @@ class Embed
             (function ($) {
                 $(document).ready(function () {
                     var config = null;
+                    var cache = [];
                     if ('klaro' in window) {
                         if ('embed' in klaro.getManager().config) {
                             config = klaro.getManager().config.embed;
@@ -147,7 +173,6 @@ class Embed
                             config = window.klaroConfigEmbed;
                         }
                         if (config && 'provider' in config) {
-                            v
                             var e = null;
                             $.each(config.provider, function (i, p) {
                                 e = $('.ske-embed[data-provider="' + p.name + '"]');
@@ -161,8 +186,19 @@ class Embed
                                     if ('buttonText' in p) {
                                         e.find('.ske-button').text(p.buttonText);
                                     }
+                                    if ('hideApp' in p && p.hideApp && 'app' in p) {
+                                        var index = -1;
+                                        $.each(klaro.getManager().config.apps, function (j, a) {
+                                            if (a.name === p.app) index = j;
+                                            return true;
+                                        });
+                                        if (index > -1) {
+                                            cache[p.app] = klaro.getManager().config.apps[index];
+                                            klaro.getManager().config.apps.splice(index, 1);
+                                        }
+                                    }
                                 }
-                            })
+                            });
                         }
                     }
                     $('.ske-button').on('click', function (e) {
@@ -177,6 +213,9 @@ class Embed
                                     _p = ('app' in _p[0]) ? _p[0]['app'] : _p[0]['name'];
                                     klaro.getManager().updateConsent(_p, true);
                                     klaro.getManager().saveAndApplyConsents();
+                                    if (_p in cache) {
+                                        klaro.getManager().config.apps.push(cache[_p]);
+                                    }
                                 }
                                 $.each($('.ske-embed[data-provider="' + p + '"]'), function (i, e) {
                                     s = $(e).next('script[type="text/template"]');
@@ -229,10 +268,34 @@ class Embed
 
 
     /**
+     * @return bool
+     */
+    protected function consented()
+    {
+        if (!empty($this->klaro) && !empty($this->provider) && !empty($this->config) && is_object($this->config) && isset($this->config->provider)) {
+            foreach ((array)$this->config->provider as $p) {
+                if ((string)$p->name === (string)$this->provider) {
+                    if (isset($p->app) && array_key_exists($p->app, $this->klaro) && (bool)$this->klaro[$p->app]) {
+                        return true;
+                    } else if (array_key_exists($p->name, $this->klaro) && (bool)$this->klaro[$p->name]) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+    /**
      * @return false|string
      */
     public function render()
     {
+        if ($this->consented()) {
+            return sprintf('<%s %s></%s', $this->tag, $this->attrs($this->attrs), $this->tag);
+        }
+
         ob_start(); ?>
         <div id="ske-<?php echo(static::$instances + 1); ?>" data-provider="<?php echo (string)$this->provider; ?>"
              data-instance="<?php echo(static::$instances + 1); ?>"
