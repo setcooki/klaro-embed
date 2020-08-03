@@ -234,7 +234,7 @@ class Embed
                 });
             })(jQuery.noConflict())
         </script><?php
-        return (new Minify\Js())->add(ob_get_clean())->minify();
+        return (new Minify\JS())->add(ob_get_clean())->minify();
     }
 
 
