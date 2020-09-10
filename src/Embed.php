@@ -28,6 +28,12 @@ class Embed
     protected $klaro = null;
 
     /**
+     * @var null
+     */
+    protected $klaroEmbed = null;
+
+
+    /**
      * @var array
      */
     protected $attrs = [];
@@ -42,6 +48,11 @@ class Embed
      */
     protected $provider = null;
 
+    /**
+     * @var null
+     */
+    protected $providerConfig = null;
+
 
     /**
      * Embed constructor.
@@ -52,11 +63,17 @@ class Embed
     public function __construct($tag, array $attrs = [], $config = null)
     {
         $this->klaro = ske_klaro();
+        $this->klaroEmbed = ske_klaro_embed();
         $this->tag = $tag;
         $this->attrs = $attrs;
         $this->config = $config;
         $this->src = (array_key_exists('src', $attrs)) ? $attrs['src'] : null;
         $this->provider = $this->provider($attrs);
+        foreach ($this->config->provider as $provider) {
+            if ($provider->name === $this->provider) {
+                $this->providerConfig = $provider;
+            }
+        }
     }
 
 
@@ -100,7 +117,7 @@ class Embed
             text-decoration: underline;
         }
 
-        .ske-embed-caption {
+        .ske-embed-title {
             overflow-wrap: break-word;
             word-wrap: break-word;
             -ms-word-break: break-all;
@@ -162,31 +179,48 @@ class Embed
                     return decodeBase64Raw(s);
                 }
             };
+            var setCookie = function (name, value, days) {
+                var expires = "";
+                if (days) {
+                    var date = new Date();
+                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "") + expires + "; path=/";
+            };
+            var getCookie = function (name) {
+                var nameEQ = name + "=";
+                var ca = document.cookie.split(';');
+                for (var i = 0; i < ca.length; i++) {
+                    var c = ca[i];
+                    while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            };
             (function ($) {
                 $(document).ready(function () {
                     var config = null;
                     var cache = [];
+                    if ('klaro' in window && 'embed' in klaro.getManager().config) {
+                        config = klaro.getManager().config.embed;
+                    } else if ('klaroConfigEmbed' in window) {
+                        config = window.klaroConfigEmbed;
+                    }
                     if ('klaro' in window) {
-                        if ('embed' in klaro.getManager().config) {
-                            config = klaro.getManager().config.embed;
-                        } else if ('klaroConfigEmbed' in window) {
-                            config = window.klaroConfigEmbed;
-                        }
                         if (config && 'provider' in config) {
-                            var e = null;
+                            var cookie = getCookie('klaroEmbed');
+                            if (cookie) {
+                                cookie = JSON.parse(decodeURIComponent(cookie));
+                            }
+
                             $.each(config.provider, function (i, p) {
-                                e = $('.ske-embed[data-provider="' + p.name + '"]');
-                                if (e.length) {
-                                    if ('titleText' in p) {
-                                        e.find('.ske-embed-caption').html(p.titleText);
-                                    }
-                                    if ('privacyPolicyLink' in p) {
-                                        e.find('.ske-embed-more').html('<a href="' + p.privacyPolicyLink + '" target="_blank">' + (('privacyPolicyText' in p) ? p.privacyPolicyText : 'More...') + '</a>')
-                                    }
-                                    if ('buttonText' in p) {
-                                        e.find('.ske-button').text(p.buttonText);
-                                    }
-                                    if ('hideApp' in p && p.hideApp && 'app' in p) {
+                                var c = true;
+                                if (p.app in klaro.getManager().consents && klaro.getManager().consents[p.app]) {
+                                    c = false;
+                                }
+                                if (!cookie || (p.app in cookie && !cookie[p.app])) {
+                                    if ((c && 'hideApp' in p && p.hideApp && 'app' in p)) {
                                         var index = -1;
                                         $.each(klaro.getManager().config.apps, function (j, a) {
                                             if (a.name === p.app) index = j;
@@ -198,6 +232,10 @@ class Embed
                                         }
                                     }
                                 }
+                                if (cookie && p.app in cookie) {
+                                    klaro.getManager().updateConsent(p.app, cookie[p.app]);
+                                    klaro.getManager().saveAndApplyConsents();
+                                }
                             });
                         }
                     }
@@ -206,15 +244,27 @@ class Embed
                         if (c.length) {
                             var s = null, h = '', p = c.data('provider');
                             if (p) {
-                                if (config && 'provider' in config && 'klaro' in window) {
+                                if (config && 'provider' in config) {
+                                    var _n = '';
                                     var _p = $.grep(config.provider, function (a) {
-                                        return (a.name === p);
+                                        return ('app' in a && a.app === p);
                                     });
+                                    _n = _p[0]['name'];
                                     _p = ('app' in _p[0]) ? _p[0]['app'] : _p[0]['name'];
-                                    klaro.getManager().updateConsent(_p, true);
-                                    klaro.getManager().saveAndApplyConsents();
-                                    if (_p in cache) {
-                                        klaro.getManager().config.apps.push(cache[_p]);
+                                    if ('klaro' in window) {
+                                        klaro.getManager().updateConsent(_p, true);
+                                        klaro.getManager().saveAndApplyConsents();
+                                        if (_p in cache) {
+                                            klaro.getManager().config.apps.push(cache[_p]);
+                                        }
+                                    } else {
+                                        var cookie = getCookie('klaroEmbed');
+                                        var value = {};
+                                        if (cookie) {
+                                            value = JSON.parse(decodeURIComponent(cookie));
+                                        }
+                                        value[_n] = true;
+                                        setCookie('klaroEmbed', encodeURIComponent(JSON.stringify(value)), 365);
                                     }
                                 }
                                 $.each($('.ske-embed[data-provider="' + p + '"]'), function (i, e) {
@@ -272,6 +322,13 @@ class Embed
      */
     protected function consented()
     {
+        //TODO: Needs complete rework
+        if (!empty($this->klaroEmbed) && !empty($this->provider)) {
+            if (array_key_exists($this->provider, $this->klaroEmbed) && (bool)$this->klaroEmbed[$this->provider]) {
+                return true;
+            }
+        }
+
         if (!empty($this->klaro) && !empty($this->provider) && !empty($this->config) && is_object($this->config) && isset($this->config->provider)) {
             foreach ((array)$this->config->provider as $p) {
                 if ((string)$p->name === (string)$this->provider) {
@@ -295,17 +352,25 @@ class Embed
         if ($this->consented()) {
             return sprintf('<%s %s></%s', $this->tag, $this->attrs($this->attrs), $this->tag);
         }
+        $title = sprintf('By clicking the following link (<i style="color: #c0c0c0">%s></i> you accept the data privacy statement of the corresponding external provider: %s', $this->src, $this->provider);
+        $button = 'Click here';
+        if ($this->providerConfig) {
+            if (isset($this->providerConfig->titleText) && !empty($this->providerConfig->titleText)) {
+                $title = $this->providerConfig->titleText;
+            }
+            if (isset($this->providerConfig->buttonText) && !empty($this->providerConfig->buttonText)) {
+                $button = $this->providerConfig->buttonText;
+            }
+        }
 
         ob_start(); ?>
         <div id="ske-<?php echo(static::$instances + 1); ?>" data-provider="<?php echo (string)$this->provider; ?>"
              data-instance="<?php echo(static::$instances + 1); ?>"
              class="ske-embed">
             <div class="ske-embed-notice">
-                <p class="ske-embed-caption">By clicking the following link (<i
-                        style="color: #c0c0c0"><?php echo $this->src; ?></i>) you accept the data privacy statement of
-                    the corresponding external provider (<?php echo $this->provider; ?>)</p>
-                <p class="ske-embed-more"></p>
-                <p class="ske-embed-action"><a class="ske-button" href="javascript:void(0);">Click here</a></p>
+                <p class="ske-embed-title"><?php echo $title; ?></p>
+                <p class="ske-embed-action"><a class="ske-button" href="javascript:void(0);"><?php echo $button; ?></a>
+                </p>
             </div>
         </div>
         <script type="text/template">

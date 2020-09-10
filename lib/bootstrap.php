@@ -6,15 +6,27 @@ require_once dirname(__FILE__) . '/api.php';
 if (function_exists('add_action')) {
     add_action('init', function () {
         $config = null;
-        if (get_stylesheet_directory()) {
-            $config = get_stylesheet_directory() . '/klaroConfigEmbed.json';
-            if (is_file($config)) {
-                $config = json_decode(file_get_contents($config));
+        if (defined('KLARO_EMBED_CONFIG_PATH') && is_file(KLARO_EMBED_CONFIG_PATH)) {
+            if (stristr(KLARO_EMBED_CONFIG_PATH, '.json') !== false) {
+                $config = json_decode(file_get_contents(KLARO_EMBED_CONFIG_PATH));
+            } else if (stristr(KLARO_EMBED_CONFIG_PATH, '.js') !== false) {
+                $config = (string)file_get_contents(KLARO_EMBED_CONFIG_PATH);
+                if (preg_match('=embed\s*:\s*\{(.*)\}=ism', $config, $m)) {
+                    $config = json_decode(sprintf('{%s}', trim($m[1], "\ \t\n\r\0\x0B{}")));
+                }
             }
-            if (empty($config)) {
-                $config = get_stylesheet_directory() . '/config/klaroConfigEmbed.json';
+        }
+        if (empty($config)) {
+            if (get_stylesheet_directory()) {
+                $config = get_stylesheet_directory() . '/klaroConfigEmbed.json';
                 if (is_file($config)) {
-                    $config = json_decode(file_get_contents($config));
+                    $config = json_decode((string)file_get_contents($config));
+                }
+                if (empty($config)) {
+                    $config = get_stylesheet_directory() . '/config/klaroConfigEmbed.json';
+                    if (is_file($config)) {
+                        $config = json_decode((string)file_get_contents($config));
+                    }
                 }
             }
         }

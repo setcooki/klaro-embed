@@ -15,6 +15,21 @@ if (!function_exists('ske_klaro')) {
     }
 }
 
+if(!function_exists('ske_klaro_embed')) {
+    /**
+     * @param false $check_only
+     * @return array|bool|mixed
+     */
+    function ske_klaro_embed($check_only = false)
+    {
+        if ((bool)$check_only) {
+            return isset($_COOKIE['klaroEmbed']);
+        } else {
+            return (isset($_COOKIE['klaroEmbed'])) ? json_decode(stripslashes(trim($_COOKIE['klaroEmbed'])), true) : [];
+        }
+    }
+}
+
 if (!function_exists('ske_embed')) {
     /**
      * @param $tag
