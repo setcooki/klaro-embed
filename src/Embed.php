@@ -112,11 +112,6 @@ class Embed
             padding: 10px;
         }
 
-        .ske-embed-notice a {
-            color: #fff !important;
-            text-decoration: underline;
-        }
-
         .ske-embed-title {
             overflow-wrap: break-word;
             word-wrap: break-word;
@@ -129,17 +124,26 @@ class Embed
             hyphens: auto;
         }
 
+        .ske-embed-title a {
+            color: #fff !important;
+            text-decoration: underline;
+        }
+
         .ske-button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             font-family: inherit;
             padding: 0.5em 1em;
-            text-decoration: none;
+            text-decoration: none !important;
             background: #ff0000;
             border-radius: 20px;
             color: #fff;
-            text-decoration: none !important;
+            margin-bottom: 5px;
+        }
+
+        .ske-button:hover {
+            color: #fff;
         }
         </style><?php
         return (new Minify\CSS())->add(ob_get_clean())->minify();
@@ -213,7 +217,6 @@ class Embed
                             if (cookie) {
                                 cookie = JSON.parse(decodeURIComponent(cookie));
                             }
-
                             $.each(config.provider, function (i, p) {
                                 var c = true;
                                 if (p.app in klaro.getManager().consents && klaro.getManager().consents[p.app]) {
@@ -237,6 +240,7 @@ class Embed
                                     klaro.getManager().saveAndApplyConsents();
                                 }
                             });
+                            document.cookie = "klaroEmbed=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/";
                         }
                     }
                     $('.ske-button').on('click', function (e) {
@@ -251,7 +255,7 @@ class Embed
                                     });
                                     _n = _p[0]['name'];
                                     _p = ('app' in _p[0]) ? _p[0]['app'] : _p[0]['name'];
-                                    if ('klaro' in window) {
+                                    if ('klaro' in window && klaro.getManager().confirmed) {
                                         klaro.getManager().updateConsent(_p, true);
                                         klaro.getManager().saveAndApplyConsents();
                                         if (_p in cache) {
