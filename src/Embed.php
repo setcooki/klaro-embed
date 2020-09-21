@@ -125,7 +125,7 @@ class Embed
         }
 
         .ske-embed-title a {
-            color: #fff !important;
+            color: #fff;
             text-decoration: underline;
         }
 
