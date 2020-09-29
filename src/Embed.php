@@ -353,9 +353,10 @@ class Embed
      */
     public function render()
     {
-        if ($this->consented()) {
+        if (!$this->provider || $this->consented()) {
             return sprintf('<%s %s></%s>', $this->tag, $this->attrs($this->attrs), $this->tag);
         }
+
         $title = sprintf('By clicking the following link (<i style="color: #c0c0c0">%s></i> you accept the data privacy statement of the corresponding external provider: %s', $this->src, $this->provider);
         $button = 'Click here';
         if ($this->providerConfig) {
