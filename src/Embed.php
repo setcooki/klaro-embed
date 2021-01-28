@@ -94,9 +94,14 @@ class Embed
             overflow: hidden;
             max-width: 100%;
             min-width: 240px;
-            height: auto;
+            min-height: inherit;
+            height: inherit;
             padding-bottom: inherit;
-            background: transparent url("data:image/svg+xml;base64,<?php echo base64_encode($svg); ?>") center center/cover no-repeat;
+            background-image: url("data:image/svg+xml;base64,<?php echo base64_encode($svg); ?>");
+            background-color: transparent;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center center;
         }
 
         .ske-embed-notice {
@@ -298,7 +303,9 @@ class Embed
      */
     protected function provider(array $attrs = [])
     {
-        if (array_key_exists('src', $attrs)) {
+        if (array_key_exists('data-provider', $attrs) && !empty($attrs['data-provider'])) {
+            return $attrs['data-provider'];
+        } else if (array_key_exists('src', $attrs)) {
             if (stripos($attrs['src'], 'vimeo') !== false) {
                 return 'vimeo';
             } else if (stripos($attrs['src'], 'youtube') !== false) {
@@ -357,6 +364,8 @@ class Embed
             return sprintf('<%s %s></%s>', $this->tag, $this->attrs($this->attrs), $this->tag);
         }
 
+        $style = [];
+        $class = ['ske-embed'];
         $title = sprintf('By clicking the following link (<i style="color: #c0c0c0">%s></i> you accept the data privacy statement of the corresponding external provider: %s', $this->src, $this->provider);
         $button = 'Click here';
         if ($this->providerConfig) {
@@ -366,12 +375,21 @@ class Embed
             if (isset($this->providerConfig->buttonText) && !empty($this->providerConfig->buttonText)) {
                 $button = $this->providerConfig->buttonText;
             }
+            if (isset($this->providerConfig->backgroundImage) && !empty($this->providerConfig->backgroundImage)) {
+                $style[] = sprintf('background-image: url(%s);', $this->providerConfig->backgroundImage);
+            }
+            if (isset($this->providerConfig->embedClass) && !empty($this->providerConfig->embedClass)) {
+                $class[] = $this->providerConfig->embedClass;
+            }
         }
 
         ob_start(); ?>
-        <div id="ske-<?php echo(static::$instances + 1); ?>" data-provider="<?php echo (string)$this->provider; ?>"
+        <div id="ske-<?php echo(static::$instances + 1); ?>"
+             data-provider="<?php echo (string)$this->provider; ?>"
              data-instance="<?php echo(static::$instances + 1); ?>"
-             class="ske-embed">
+             class="<?php echo implode(' ', $class); ?>"
+             style="<?php echo implode(';', $style); ?>"
+        >
             <div class="ske-embed-notice">
                 <p class="ske-embed-title"><?php echo $title; ?></p>
                 <p class="ske-embed-action"><a class="ske-button" href="javascript:void(0);"><?php echo $button; ?></a>
