@@ -12,7 +12,9 @@ if (function_exists('add_action')) {
             } else if (stristr(KLARO_EMBED_CONFIG_PATH, '.js') !== false) {
                 $config = (string)file_get_contents(KLARO_EMBED_CONFIG_PATH);
                 if (preg_match('=embed\s*:\s*\{(.*)\}=ism', $config, $m)) {
-                    $config = json_decode(sprintf('{%s}', trim($m[1], "\ \t\n\r\0\x0B{}")));
+                    $m[1] = trim($m[1], "\ \t\n\r\0\x0B{}");
+                    $m[1] = preg_replace('=^(?:[\s\t]*)?([a-z0-9_-]+)\:=ism', '"$1":', $m[1]);
+                    $config = json_decode(sprintf('{%s}', $m[1]));
                 }
             }
         }
