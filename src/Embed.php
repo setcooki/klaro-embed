@@ -62,7 +62,6 @@ class Embed
      */
     public function __construct($tag, array $attrs = [], $config = null)
     {
-        print_r(func_get_args());
         $this->klaro = ske_klaro();
         $this->klaroEmbed = ske_klaro_embed();
         $this->tag = $tag;

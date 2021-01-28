@@ -19,5 +19,32 @@ the choices will be either stored in the Klaro! cookie if the app is mapped in t
 cookie. In this sense klaro-embed acts as an extension for optional services embedded via iframe/embed code with inline functionality.
 Or as a supplement for external services that do not need to appear as a Klaro! app in the Klaro! manager.
 
-### How does it work (install)
+### 1) Requirements
+
+None! But this package is supposed to be used in conjunction with Klaro! so you may install it if you want have a consent manager.
+Its not a must as package runs with it out Klaro! as well.
+
+### 2) Install
+
+```bash
+composer require setcooki/klaro-embed
+```
+
+Its sufficient to install the package as it will run bootstrapped when composer vendor/autoload.php is loaded. There is no Wordpress
+plugin interface or anything else you will see in your wordpress backend
+
+### 3) Use
+
+#### 3.1) Use with Klaro!
+
+If you are already using Klaro! you can configure klaro-embed by extending the Klaro! config file https://kiprotect.com/docs/klaro/annotated-configuration
+If you use the Klaro! Wordpress plugin you must create your own klaro-embed config file and tell the package where to find it. 
+But first lets go the configuration:
+
+```json
+
+```
+
+
+
 
