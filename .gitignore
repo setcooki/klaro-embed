@@ -1,2 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
+.idea
+lib/vendor
 wordpress
+composer.lock
