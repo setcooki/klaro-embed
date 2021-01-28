@@ -74,7 +74,6 @@ class Embed
                 $this->providerConfig = $provider;
             }
         }
-        print_r($this);
     }
 
 
