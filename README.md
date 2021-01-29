@@ -21,8 +21,8 @@ Or as a supplement for external services that do not need to appear as a Klaro! 
 
 ### 1) Requirements
 
-None! But this package is supposed to be used in conjunction with Klaro! so you may install it if you want have a consent manager.
-Its not a must as package runs with it out Klaro! as well.
+None! But this package is supposed to be used in conjunction with Klaro! so you may install it if you want to have a consent manager
+with visual interface. But its mandatory because klaro-embed will also work without Klaro! beeing installed.
 
 ### 2) Install
 
@@ -33,18 +33,55 @@ composer require setcooki/klaro-embed
 Its sufficient to install the package as it will run bootstrapped when composer vendor/autoload.php is loaded. There is no Wordpress
 plugin interface or anything else you will see in your wordpress backend
 
-### 3) Use
-
-#### 3.1) Use with Klaro!
+### 3) Configuration
 
 If you are already using Klaro! you can configure klaro-embed by extending the Klaro! config file https://kiprotect.com/docs/klaro/annotated-configuration
 If you use the Klaro! Wordpress plugin you must create your own klaro-embed config file and tell the package where to find it. 
-But first lets go the configuration:
+But first lets go the configuration and extend it with:
 
 ```json
-
+{
+  "embed": {
+    "provider": [{
+      "name": "youtube",
+      "app": "youtube",
+      "hideApp": true,
+      "titleText": "By clicking the following link i agree to YouTube´s <a href='https://policies.google.com/privacy' target='_blank'>Terms of servive</a>",
+      "buttonText": "Load video"
+    }]
+  }
+}
 ```
 
+The following parameters can be used:
 
+| Parameter | Type | Mandatory | Default | Description |
+| --------- | ---- | --------- | ------- | ----------- |
+| name | `string` | yes | `null` | Provider name as reference and cookie value |
+| app | `string` | no | `null` | Connect this provider to a Klaro! app as found in Klaro! config. See explantion below |
+| hideApp | `boolean` | no | `false` | If connected to a Klaro! app hides the provider in consent manager |
+| titleText | `string` | no | `null` | The consent title text |
+| buttonText | `string` | no | `null` | The consent button text |
+| backgroundImage | `string` | no | `null` | Overrides the embed wrapper `background-image: url({backgroundImage})` value |
+| embedClass | `string` | no | `null` | Extends the embed wrapper css classes |
 
+All parameters should be self-explanatory. 
 
+The most important parameter is `app`. Unless you connect your provider with a Klaro! app (as set in the Klaro! config) the 
+klaro-embed will work independently of Klaro! by storing its own cookie and any change to a Klaro! app consent will have no
+effect on this provider.
+
+### 3) Usage
+
+klaro-embed does not know where the Klaro! config resides and if you have access to the config for extending you must tell
+klaro-embed where to find the Klaro! config file by setting:
+
+```phpregexp
+define('KLARO_EMBED_CONFIG_PATH', 'your/path');
+```
+
+You must define the constant before klaro-embed is autoloaded!
+
+If you do not have access to the Klaro! config file (Be it because you use the Klaro! Wordpress Plugin or any other reason)
+the package will look for a config file with the name of `klaroConfigEmbed.json` in your themes root directory
+or in `config/klaroConfigEmbed.json` in your themes root directory
