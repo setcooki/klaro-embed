@@ -71,7 +71,7 @@ The most important parameter is `app`. Unless you connect your provider with a K
 klaro-embed will work independently of Klaro! by storing its own cookie and any change to a Klaro! app consent will have no
 effect on this provider.
 
-### 3) Usage
+### 4) Usage
 
 klaro-embed does not know where the Klaro! config resides and if you have access to the config for extending you must tell
 klaro-embed where to find the Klaro! config file by setting:
@@ -85,3 +85,14 @@ You must define the constant before klaro-embed is autoloaded!
 If you do not have access to the Klaro! config file (Be it because you use the Klaro! Wordpress Plugin or any other reason)
 the package will look for a config file with the name of `klaroConfigEmbed.json` in your themes root directory
 or in `config/klaroConfigEmbed.json` in your themes root directory
+
+Next step you need to decorate your `<iframe>` and `<embed>` script tags so that klaro-embed gets active. Add
+the following data properties to your tag:
+
+```html
+<iframe src="..." data-embed data-provider="{name}"></iframe>
+```
+The `{name}` value must map to the provider `name` property in your config file! Thats all! klaro-embed will now handle
+the iframe/embed according to the consent given or not.
+
+Enjoy!
